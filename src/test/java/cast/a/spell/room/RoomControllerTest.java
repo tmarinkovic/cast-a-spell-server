@@ -36,7 +36,7 @@ class RoomControllerTest {
         ResponseEntity response = roomController.createRoom("hostId");
 
         assertThat(response.getStatusCodeValue(), is(200));
-        assertThat(response.getBody(), is(expectedRoomInformation));
+        assertThat(response.getBody(), is(expectedRoomInformation.getMap()));
     }
 
     @Test
@@ -58,6 +58,6 @@ class RoomControllerTest {
         ResponseEntity response = roomController.getRoom("clientId");
 
         assertThat(response.getStatusCodeValue(), is(200));
-        assertThat(response.getBody(), is(expectedRoomInformation));
+        assertThat(response.getBody(), is(expectedRoomInformation.getMap()));
     }
 }

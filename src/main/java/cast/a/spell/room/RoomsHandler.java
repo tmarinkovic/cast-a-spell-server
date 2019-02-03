@@ -7,7 +7,7 @@ import java.util.HashMap;
 @Component
 public class RoomsHandler {
 
-    private int currentRoomId;
+    private Integer currentRoomId;
     private HashMap<String, RoomInformation> rooms;
     private HashMap<String, String> clientIdHostId;
 

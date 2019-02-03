@@ -1,6 +1,7 @@
 package cast.a.spell.room;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 class RoomInformation {
@@ -33,5 +34,13 @@ class RoomInformation {
 
     String getHostId() {
         return hostId;
+    }
+
+    HashMap<String, Object> getMap(){
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("hostId", hostId);
+        map.put("roomId", roomId);
+        map.put("clientsId", clientsId);
+        return map;
     }
 }
