@@ -6,9 +6,10 @@ AWS_PROFILE="tmarinkovic"
 echo "Creating bucket..."
 aws s3api create-bucket --bucket "$PROJECT_NAME" --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1 --profile "$AWS_PROFILE"
 
-echo "Building application..."
+echo "Running tests..."
 ./gradlew clean test
 ./gradlew clean integrationTest
+echo "Building application..."
 ./gradlew clean build -x test
 
 echo "Uploading to S3..."
@@ -17,23 +18,22 @@ aws s3 cp cloudformation.template s3://"$PROJECT_NAME"/cloudformation.template -
 aws s3 cp script/stop-service.sh s3://"$PROJECT_NAME"/stop-service.sh --region eu-west-1 --profile "$AWS_PROFILE"
 echo "Creating stack on aws..."
 aws cloudformation create-stack --stack-name "$PROJECT_NAME" --parameters ParameterKey=SourceCodeBucket,ParameterValue="$PROJECT_NAME" --template-url https://s3.amazonaws.com/"$PROJECT_NAME"/cloudformation.template --capabilities CAPABILITY_IAM --region eu-west-1 --profile "$AWS_PROFILE"
-echo "Done!"
 
-PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=instance-type,Values=t2.nano" --profile "$AWS_PROFILE" --region eu-west-1 | grep "PublicIpAddress" | head -1)
-IFS=': ' read -r -a array <<< "$PUBLIC_IP"
-PUBLIC_IP=${array[1]}
-PUBLIC_IP=$(sed 's/.\{1\}$//' <<< "$PUBLIC_IP")
-PUBLIC_IP="${PUBLIC_IP//\"}"
-echo "Public IP: $PUBLIC_IP"
-
-
-
-
-
-
-
-
-
-
-
-
+echo "Booting up resources..."
+LOOP=true
+while [ "$LOOP" = "true" ]
+    do
+         if [ -n "$PUBLIC_IP" ]; then
+            echo "Done!"
+            LOOP=false
+            echo "Public IP: $PUBLIC_IP"
+        else
+            sleep 10
+            PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=instance-type,Values=t2.nano" --profile "$AWS_PROFILE" --region eu-west-1 | grep "PublicIpAddress" | head -1)
+            IFS=': ' read -r -a array <<< "$PUBLIC_IP"
+            PUBLIC_IP=${array[1]}
+            PUBLIC_IP=$(sed 's/.\{1\}$//' <<< "$PUBLIC_IP")
+            PUBLIC_IP="${PUBLIC_IP//\"}"
+            echo 'Not boot up yet...'
+        fi
+   done
