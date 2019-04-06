@@ -46,10 +46,10 @@ public class RoomsHandler {
         rooms.remove(sessionId);
     }
 
-    public void removeClientFromRoom(String clientId, String sessionId) {
+    public void removeClientFromRoom(String clientId) {
         String hostId = clientIdHostId.get(clientId);
         clientIdHostId.remove(clientId);
-        rooms.get(hostId).removeClientId(sessionId);
+        rooms.get(hostId).removeClientId(clientId);
     }
 
     HashMap<String, RoomInformation> getRooms() {

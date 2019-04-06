@@ -22,7 +22,7 @@ public class SessionTracker {
         this.roomsHandler = roomsHandler;
     }
 
-    void addSession(StompHeaderAccessor stompHeaderAccessor) {
+    public void addSession(StompHeaderAccessor stompHeaderAccessor) {
         List<String> type = stompHeaderAccessor.getNativeHeader("type");
         if (type != null && type.size() > 0) {
             sessionIdType.put(stompHeaderAccessor.getSessionId(), type.get(0));
@@ -34,13 +34,13 @@ public class SessionTracker {
         }
     }
 
-    void removeSession(String sessionId) {
+    public void removeSession(String sessionId) {
         String type = sessionIdType.get(sessionId);
         if (type.equals("host")) {
             roomsHandler.destroyRoom(sessionId);
         } else {
             String clientId = sessionIdClientId.get(sessionId);
-            roomsHandler.removeClientFromRoom(clientId, sessionId);
+            roomsHandler.removeClientFromRoom(clientId);
             sessionIdClientId.remove(sessionId);
         }
         sessionIdType.remove(sessionId);
@@ -52,5 +52,9 @@ public class SessionTracker {
 
     HashMap<String, String> getSessionIdClientId() {
         return sessionIdClientId;
+    }
+
+    public RoomsHandler getRoomsHandler() {
+        return roomsHandler;
     }
 }

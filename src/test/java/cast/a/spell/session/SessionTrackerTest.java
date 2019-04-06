@@ -72,7 +72,7 @@ class SessionTrackerTest {
         sessionTracker.removeSession("sessionId");
 
         verify(roomsHandler, never()).destroyRoom("sessionId");
-        verify(roomsHandler).removeClientFromRoom(any(String.class), any());
+        verify(roomsHandler).removeClientFromRoom(any(String.class));
         assertThat(sessionTracker.getSessionIdType().size(), is(0));
         assertThat(sessionTracker.getSessionIdClientId().size(), is(0));
     }

@@ -115,7 +115,7 @@ class RoomsHandlerTest {
 
         roomsHandler.createRoom("sessionId");
         roomsHandler.getNextAvailableRoomForPlayer("clientId");
-        roomsHandler.removeClientFromRoom("clientId", "sessionId");
+        roomsHandler.removeClientFromRoom("clientId");
 
         assertThat(roomsHandler.getClientIdHostId().size(), is(0));
     }
