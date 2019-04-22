@@ -1,6 +1,5 @@
 # Cast a spell backend
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-# Status: IN PROGRESS
 Backend for handling socket connection between host and client components.
 
 ## Usecase
