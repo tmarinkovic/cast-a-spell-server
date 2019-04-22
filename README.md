@@ -1,8 +1,8 @@
-#Cast a spell backend
-#Status: IN PROGRESS
+# Cast a spell backend
+# Status: IN PROGRESS
 Backend for handling socket connection between host and client components.
 
-##Usecase
+## Usecase
 Using STOMP protocol and HTTP endpoint, it accepts new connections, creating room for maximum of 2 players and holds
 socket connection between them.
 
@@ -11,12 +11,12 @@ For example this components are connecting through this micro service:
  - cast-a-spell-client[TBD]
 
 It is build using gradle and has support for deploying to AWS.
-##Local usage
+## Local usage
  ```groovy
  ./gradlew runBoot
  ```
  
- ##AWS usage
+ ## AWS usage
  ### Prerequisite
   - [AWS account][2]    
   - [AWS CLI][1]
