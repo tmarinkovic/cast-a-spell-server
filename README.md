@@ -41,7 +41,7 @@ Deploy command builds docker image, upload it to docker repository and updates s
   
   
   
-  [1]: http://example.com/"
-  [2]: https://aws.amazon.com/"
-  [3]: https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html"
-  [4]: https://github.com/tmarinkovic/cast-a-spell-host"
+  [1]: http://example.com
+  [2]: https://aws.amazon.com
+  [3]: https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
+  [4]: https://github.com/tmarinkovic/cast-a-spell-host
