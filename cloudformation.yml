@@ -51,11 +51,11 @@ Resources:
           #cloud-config
           cloud_final_modules:
           - [scripts-user, always]
-          #!/bin/bash
-          sudo yum -y install docker
-          sudo service docker start
-          sudo `aws ecr get-login --region eu-west-1 --no-include-email`
-          sudo docker run -p 8080:8080 --expose 8080 995746385715.dkr.ecr.eu-west-1.amazonaws.com/cast-a-spell-server-docker-repo:latest
+          runcmd:
+            - sudo yum -y install docker
+            - sudo service docker start
+            - sudo `aws ecr get-login --region eu-west-1 --no-include-email`
+            - sudo docker run -p 8080:8080 --expose 8080 995746385715.dkr.ecr.eu-west-1.amazonaws.com/cast-a-spell-server-docker-repo:${Version}
 
   ec2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
