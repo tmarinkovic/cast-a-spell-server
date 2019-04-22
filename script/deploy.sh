@@ -2,10 +2,6 @@
 AWS_PROFILE=$1
 PROJECT_NAME=$2
 
-./gradlew clean test
-./gradlew clean integrationTest
-./gradlew clean build
-
 VERSION=`cat "version.properties" | grep "version" | cut -d'=' -f2`
 NEXT_VERSION=$((VERSION+1))
 echo "version=$NEXT_VERSION" > version.properties

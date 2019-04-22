@@ -88,3 +88,6 @@ task destroyResources(type: Exec) {
 task deploy(type: Exec) {
     commandLine 'sh', './script/deploy.sh', awsProfile, appName
 }
+
+integrationTest.dependsOn test
+deploy.dependsOn integrationTest
