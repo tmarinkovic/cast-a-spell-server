@@ -1,28 +1,31 @@
 #!/usr/bin/env bash
+AWS_PROFILE=$1
+PROJECT_NAME=$2
 
-PROJECT_NAME="cast-a-spell-server"
-AWS_PROFILE="tmarinkovic"
 
-PUBLIC_DNS=$(aws ec2 describe-instances --filters "Name=instance-type,Values=t2.nano" --profile "$AWS_PROFILE" --region eu-west-1 | grep "PublicDnsName" | head -1)
-IFS=': ' read -r -a array <<< "$PUBLIC_DNS"
-PUBLIC_DNS=${array[1]}
-PUBLIC_DNS=$(sed 's/.\{1\}$//' <<< "$PUBLIC_DNS")
-PUBLIC_DNS="${PUBLIC_DNS//\"}"
-echo "Public DNS: $PUBLIC_DNS"
+VERSION=`cat "version.properties" | grep "version" | cut -d'=' -f2`
+NEXT_VERSION=$((VERSION+1))
+echo "version=$NEXT_VERSION" > version.properties
 
-echo "Building artifacts..."
-./gradlew clean test
-./gradlew clean integrationTest
-./gradlew clean build -x test
+IMAGE_NAME="cast-a-spell-server-docker-repo"
+REPO="995746385715.dkr.ecr.eu-west-1.amazonaws.com"
 
-echo "Syncing bucket..."
-aws s3 sync build/libs s3://"$PROJECT_NAME" --profile "$AWS_PROFILE"
+aws ecr batch-delete-image --repository-name "$PROJECT_NAME"-docker-repo --image-ids imageTag=latest --profile "$AWS_PROFILE"
+aws ecr batch-delete-image --repository-name "$PROJECT_NAME"-docker-repo --image-ids imageTag="$VERSION" --profile "$AWS_PROFILE"
 
-echo "Deploying..."
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo chmod u+x stop-service.sh"
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo ./stop-service.sh"
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo rm cast-a-spell-server-0.1.0.jar"
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo rm cast-a-spell-server.log"
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo aws s3 cp s3://cast-a-spell-server/cast-a-spell-server-0.1.0.jar /home/ec2-user/cast-a-spell-server-0.1.0.jar"
-ssh -o "StrictHostKeyChecking no" -i /Users/tmarinkovic/.ssh/id_rsa ec2-user@"$PUBLIC_DNS" "sudo nohup java -jar cast-a-spell-server-0.1.0.jar > cast-a-spell-server.log &"
-echo "Done!"
+function cleanup {
+    docker rmi "$IMAGE_NAME:$NEXT_VERSION"
+    docker rmi "$REPO/$IMAGE_NAME:$NEXT_VERSION"
+    docker rmi "$REPO/$IMAGE_NAME:latest"
+}
+trap "cleanup; exit" INT TERM EXIT
+
+`aws ecr get-login --region eu-west-1 --no-include-email --profile "$AWS_PROFILE"`
+docker build -t "$IMAGE_NAME:$NEXT_VERSION" .
+docker tag "$IMAGE_NAME:$NEXT_VERSION" "$REPO/$IMAGE_NAME:$NEXT_VERSION"
+docker tag "$IMAGE_NAME:$NEXT_VERSION" "$REPO/$IMAGE_NAME:latest"
+docker push "$REPO/$IMAGE_NAME"
+
+
+aws cloudformation update-stack --stack-name "$PROJECT_NAME" --parameters ParameterKey=SourceCodeBucket,ParameterValue="$PROJECT_NAME" ParameterKey=Version,ParameterValue="$NEXT_VERSION" --template-body file://cloudformation.yml  --capabilities CAPABILITY_IAM --region eu-west-1 --profile "$AWS_PROFILE"
+

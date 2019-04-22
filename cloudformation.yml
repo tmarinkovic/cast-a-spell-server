@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Resources for cast-a-spell-server
+Parameters:
+  SourceCodeBucket:
+    Description: Bucket name
+    Type: String
+  Version:
+    Description: Docker image version
+    Type: String
+
+Resources:
+  DockerRepository:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: "cast-a-spell-server-docker-repo"
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowPush
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Sub: "arn:aws:sts::${AWS::AccountId}:root"
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:CompleteLayerUpload
+              - ecr:GetAuthorizationToken
+              - ecr:GetDownloadUrlForLayer
+              - ecr:InitiateLayerUpload
+              - ecr:PutImage
+              - ecr:UploadLayerPart
+          - Sid: AllowPull
+            Effect: Allow
+            Principal:
+              AWS:
+                - Fn::Sub: "arn:aws:sts::${AWS::AccountId}:root"
+            Action:
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetAuthorizationToken
+              - ecr:GetDownloadUrlForLayer
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: "ami-776a659d"
+      InstanceType: "t2.nano"
+      IamInstanceProfile: !Ref ec2InstanceProfile
+      KeyName: "id_rsa.pub"
+      UserData:
+        'Fn::Base64': !Sub |
+          #cloud-config
+          cloud_final_modules:
+          - [scripts-user, always]
+          #!/bin/bash
+          sudo yum -y install docker
+          sudo service docker start
+          sudo `aws ecr get-login --region eu-west-1 --no-include-email`
+          sudo docker run -p 8080:8080 --expose 8080 995746385715.dkr.ecr.eu-west-1.amazonaws.com/cast-a-spell-server-docker-repo:latest
+
+  ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref RootRole
+
+  RootRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: DockerAuth
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:GetRepositoryPolicy
+                  - ecr:DescribeRepositories
+                  - ecr:ListImages
+                  - ecr:BatchGetImage
+                Effect: Allow
+                Resource: "*"
+            Version: "2012-10-17"

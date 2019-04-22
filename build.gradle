@@ -71,3 +71,20 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false }
 }
+
+ext {
+    awsProfile = "tmarinkovic"
+    appName = "cast-a-spell-server"
+}
+
+task createResources(type: Exec) {
+    commandLine 'sh', './script/create-resources.sh', awsProfile, appName
+}
+
+task destroyResources(type: Exec) {
+    commandLine 'sh', './script/destroy-resources.sh', awsProfile, appName
+}
+
+task deploy(type: Exec) {
+    commandLine 'sh', './script/deploy.sh', awsProfile, appName
+}
